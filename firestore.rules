@@ -1,0 +1,89 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email != null;
+    }
+
+    function userRecord() {
+      return get(/databases/$(database)/documents/users/$(request.auth.token.email.lower()));
+    }
+
+    function hasRole(role) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.token.email.lower()))
+        && userRecord().data.role == role;
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    function isStaff() {
+      return isAdmin() || hasRole('staff');
+    }
+
+    function roundIsOpen(year) {
+      return get(/databases/$(database)/documents/rounds/$(year)).data.isOpen == true;
+    }
+
+    // One document per academic year: { year, isOpen, createdAt, maxChoices }.
+    match /rounds/{year} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      // Single source of truth for every page — plans/{id} mirrors src/types/plan.ts.
+      match /plans/{planId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+
+      // One document per individual counting action. Never an accumulated total.
+      match /entries/{entryId} {
+        allow read: if isStaff();
+
+        allow create: if isStaff()
+          && roundIsOpen(year)
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.deleted == false;
+
+        // Soft delete only: may flip `deleted` to true and stamp who/when, nothing else.
+        allow update: if isStaff()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deleted', 'deletedBy', 'deletedAt'])
+          && request.resource.data.deleted == true
+          && request.resource.data.deletedBy == request.auth.uid;
+
+        allow delete: if false;
+      }
+
+      // Future phase: Excel/CSV import. Readable by teachers only, never by students.
+      match /students/{studentId} {
+        allow read: if isStaff();
+        allow write: if isAdmin();
+      }
+    }
+
+    // Aggregate counts only — no applicant identity. Written exclusively by Cloud Functions
+    // (via the Admin SDK, which bypasses these rules), never directly by clients.
+    match /public/{statsDoc} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Append-only. Existing records can never be modified or deleted, per spec.
+    match /auditLogs/{logId} {
+      allow read: if isStaff();
+      allow create: if isStaff() && request.resource.data.by == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Doc ID is the lower-cased, pre-authorized school email. Users read their own record
+    // to resolve their role on login; only admins manage the roster.
+    match /users/{email} {
+      allow read: if isSignedIn() && (request.auth.token.email.lower() == email || isAdmin());
+      allow write: if isAdmin();
+    }
+  }
+}

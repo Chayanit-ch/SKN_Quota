@@ -1,0 +1,87 @@
+@import 'tailwindcss';
+
+/* Dark mode is toggled via a `.dark` class on <html>, see src/hooks/useTheme.ts */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-navy: #13274f;
+  --color-blue: #1f5fbf;
+  --color-blue-soft: #e6eefb;
+  --color-bg: #ffffff;
+  --color-surface: #f6f8fc;
+  --color-yellow: #f5c518;
+  --color-yellow-soft: #fff6d1;
+  --color-line: #dce3ef;
+  --color-success: #1e8e5a;
+  --color-danger: #c0392b;
+
+  --font-heading: 'Bai Jamjuree', 'Anuphan', 'IBM Plex Sans Thai', sans-serif;
+  --font-body: 'IBM Plex Sans Thai', 'Bai Jamjuree', sans-serif;
+
+  --radius-card: 12px;
+  --radius-control: 10px;
+}
+
+.dark {
+  --color-navy: #e8edf7;
+  --color-blue: #6ea2f0;
+  --color-blue-soft: #1a2a47;
+  --color-bg: #0e1628;
+  --color-surface: #152038;
+  --color-yellow: #f5c518;
+  --color-yellow-soft: #3a3110;
+  --color-line: #24314d;
+  --color-success: #5ccb94;
+  --color-danger: #f08a7e;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-navy);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+/* All numeric values must use tabular-nums per design spec */
+.num,
+.font-heading {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes flash-update {
+  0% {
+    background-color: var(--color-blue-soft);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.flash-update {
+  animation: flash-update 900ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
