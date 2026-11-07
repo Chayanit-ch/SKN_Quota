@@ -1,4 +1,39 @@
-# Logs
+# === Secrets / environment ===
+# Wildcard (not just ".env") so this also catches stray variants like a
+# trailing-space filename from an editor's "new file" dialog, ".env.local", etc.
+.env*
+!.env.example
+*.pem
+*.key
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
+service-account*.json
+
+# === Dependencies ===
+node_modules
+
+# === Build output ===
+dist
+dist-ssr
+build
+functions/lib
+*.tsbuildinfo
+
+# === Test / coverage ===
+coverage
+*.local
+
+# === Firebase ===
+.firebase
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
+database-debug.log
+pubsub-debug.log
+firebase-export-*/
+
+# === Logs ===
 logs
 *.log
 npm-debug.log*
@@ -7,28 +42,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-.env
-.env.*
-!.env.example
-
-# Firebase
-.firebase
-firebase-debug.log
-firestore-debug.log
-ui-debug.log
-functions/lib
-
-# Editor directories and files
+# === Editor / IDE ===
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Claude Code (local-only, per-machine permissions) ===
+.claude/settings.local.json
